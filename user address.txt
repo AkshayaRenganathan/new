@@ -1,0 +1,505 @@
+view-all.html
+================
+
+ 
+<div >
+<br><br>
+<table class="table tableCart" style="margin-left:auto; margin-right:auto;">
+  <thead class="tableCart">
+    <th>Address type</th>
+    <th>Address Line 1</th>
+    <th>Address Line 2</th>
+    <th>Area</th>
+    <th>City</th>
+    <th>State</th>
+    <th>Pincode</th>
+    <th>Update</th>
+    <th>Delete</th>
+  </thead>
+  <tbody class="ot">
+    <tr *ngFor="let e of userAddressList">
+      <td>{{e.userAddressName}}</td>
+      <td> {{e.addressLine1}}</td>
+       <td> {{e.addressLine2}}</td>
+       <td> {{e.area}}</td>
+        <td> {{e.city}}</td>
+         <td> {{e.userState}}</td>
+         <td> {{e.pincode}}</td>
+         <td style="padding-left: 45px;"><i matTooltip="Update"
+        class="material-icons" (click)="updateAddress(e)">edit</i>
+        
+      </td>
+
+      <td style="padding-left: 45px;"><i matTooltip="Remove"
+        class="material-icons" (click)="deleteAddress(e.userAddressId)">delete</i>
+        
+      </td>
+     
+    </tr>
+
+  </tbody>
+
+</table>
+ 
+<table class="checked table tableCart1" style="margin-left:auto; margin-right:auto;">
+
+  <tr>
+    <td style="padding-right: 280px;font-size: large;"><button class="btn btn-primary text-center" matTooltip="Click to add add address" (click)="addAddress()">Add Address</button></td>
+      </tr>
+
+</table>
+
+========================================================================================================
+view-all ts
+--------------
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { UserAddress } from 'src/app/models/UserAddress';
+import { UpdateAddressService } from '../update-address/update-address.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AddAddressService } from '../add-address/add-address.service';
+
+@Component({
+  selector: 'app-view-all-address',
+  templateUrl: './view-all-address.component.html',
+  styleUrls: ['./view-all-address.component.css']
+})
+export class ViewAllAddressComponent implements OnInit {
+
+  userAddressList: UserAddress[];
+  userName: String;
+
+  error: String;
+  flag: Boolean;
+  addressDelete: UserAddress;
+  mdelMsg: string="Deleted successfully";
+  constructor(private addservice:UpdateAddressService,private router:Router, private adadrservice:AddAddressService,private _snackBar: MatSnackBar) { }
+
+  ngOnInit(): void {
+
+    // Your code goes here
+    this.userName=sessionStorage.getItem("userId");
+  
+    this.error="No Address to Show..."
+    this.addservice.getUserList(this.userName).subscribe(
+      a=>{this.userAddressList=a.addressList
+      console.log(this.userAddressList)
+      console.log(a)},
+      err=>console.log(err)
+      
+
+    )
+  }
+
+  populateAddress(){
+    
+    // Your code goes here
+  }
+
+  deleteAddress(addressId: number){
+   this.userAddressList.splice(this.userAddressList.findIndex(a=>a.userAddressId==addressId), 1);
+ 
+   this._snackBar.open(this.mdelMsg, "", {
+    duration: 2000,
+  });
+   // Your code goes here
+    this.addservice.delete(addressId.toString(),this.userName).subscribe(
+      (response)=>{
+        console.log("in response");
+       
+      },
+      (error)=>this.error=error
+    )
+  }
+
+  updateAddress(userAddress: UserAddress) {
+
+   // Your code goes here
+   sessionStorage.setItem("address",userAddress.userAddressId.toString())
+   
+   this.router.navigate(['/updateAddress'])
+  }
+
+  addAddress(){
+    
+   // Your code goes here
+   this.router.navigate(['/addAddress'])
+
+  }
+
+}
+===========================================================================================
+update html
+-------------
+<div class="container">
+  
+        <div class="row">
+            <div class="col-md-8 offset-3">
+                    <h1 class="text-center fw-2 ">Update Address</h1>
+                <form [formGroup]="updateForm" (ngSubmit)="update()">
+                    <div class="form-group">
+                        <label for="userAddressName"><mat-icon class="material-icons">home_work</mat-icon> Address Type:</label>
+            
+                      <input type="text"  id="userAddressName2"  placeholder="Specify your Address Type:" class="form-control" formControlName="userAddressName">
+                      <span id="userAddressNameError" class="alert" *ngIf="updateForm.controls['userAddressName'].dirty && updateForm.controls['userAddressName'].invalid">
+                        Please enter the valid address type
+                    </span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressLine1"><mat-icon class="material-icons">import_contacts</mat-icon> Address Line 1:</label>
+                        <input type="text" id="addressLine1" class="form-control" formControlName="addressLine1" placeholder=" enter plot no./street name/ building name">
+                        <span id="addressLine1Error" class="alert" *ngIf="updateForm.controls['addressLine1'].dirty && updateForm.controls['addressLine1'].invalid">
+                            Please enter the  plot no./street name/ building name
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressLine2"><mat-icon class="material-icons">import_contacts</mat-icon> Address Line 2:</label>
+                        <input type="text" id="addressLine2" class="form-control" formControlName="addressLine2" placeholder=" enter  location/landmark">
+                        <span id="addressLine2Error" class="alert" *ngIf="updateForm.controls['addressLine2'].dirty && updateForm.controls['addressLine2'].invalid">
+                            Please enter the  valid  location/landmark
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label for="area"><mat-icon class="material-icons">emoji_transportation</mat-icon> Area Name:</label>
+                        <input type="text" id="area" class="form-control" formControlName="area" placeholder=" enter your area name">
+                        <span id="areaError" class="alert" *ngIf="updateForm.controls['area'].dirty && updateForm.controls['area'].invalid">
+                            Please enter the area name of minimum of length 3 characters
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label for="city"><mat-icon class="material-icons">location_city</mat-icon> City Name:</label>
+                        <input type="text" id="city" class="form-control" formControlName="city" placeholder=" enter your city name">
+                        <span id="cityError" class="alert" *ngIf="updateForm.controls['city'].dirty && updateForm.controls['city'].invalid">
+                            Please enter the city name of minimum of length 3 characters
+                        </span>
+                    </div>
+                    <div class="form-group">
+                    <label for="userState"><mat-icon class="material-icons">domain</mat-icon> State:</label>
+                    <select id="userState" class="form-control" formControlName="userState" >
+                        <option value="">--Choose the State--</option>
+                        <option *ngFor="let a of stateList" value="{{a}}">{{a}}</option>
+                    </select>
+                    <!-- <span id="userStateError" class="alert" *ngIf="updateForm.controls['userState'].dirty && updateForm.controls['userState].invalid">
+                        Please choose valid state
+                    </span> -->
+                </div>
+                    <div class="form-group" >
+                        <label for="pincode"><mat-icon class="material-icons">home_pin</mat-icon> PinCode:</label>
+                        <input type="number" id="pincode" class="form-control" formControlName="pincode" placeholder=" Enter your pincode">
+                       <!--  <span id="pincodeError" class="alert" *ngIf="updateForm.controls['pincode'].dirty && updateForm.controls['pincode'].invalid">
+                            Please enter the valid pincode number
+                        </span> -->
+                    </div>
+                   
+                       <button type="submit"  class="btn"  [disabled]="updateForm.invalid || updateForm.pristine" >Update Address</button>
+                       
+       
+                  </form>
+                            
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    
+    ==========================================================================================
+update ts
+-----------
+import { Component, OnInit } from '@angular/core';
+import { Validators, FormBuilder, FormGroup, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { UpdateAddressService } from './update-address.service';
+import { UserAddress } from 'src/app/models/UserAddress';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+@Component({
+  selector: 'app-update-address',
+  templateUrl: './update-address.component.html',
+  styleUrls: ['./update-address.component.css']
+})
+export class UpdateAddressComponent implements OnInit {
+
+  stateList: string[] = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu Kashmir", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttarakhand", "Uttar Pradesh", "West Bengal"];
+  flag: boolean;
+  errorMessage: String;
+  successMessage: string;
+  updateForm: FormGroup;
+  successMsg: String;
+  address: any;
+  userName: any;
+  constructor(private fb: FormBuilder, private updateser: UpdateAddressService, private router: Router,private _snackBar: MatSnackBar) { }
+
+  ngOnInit() {
+
+    // Your code goes here
+    this.updateForm = this.fb.group({
+      userAddressName: ["", Validators.required],
+      addressLine1: ["", [Validators.required, Validators.pattern("[A-Za-z0-9-/., ]+")]],
+      addressLine2: ["", [Validators.required, Validators.pattern("[A-Za-z0-9-/., ]+")]],
+      area: ["", [Validators.required, Validators.minLength(3)]],
+      city: ["", [Validators.required, Validators.minLength(3)]],
+      userState: ["", Validators.required],
+      pincode: ["", [Validators.required, Validators.pattern("[1-9][0-9]{5}")]]
+    })
+
+
+  }
+
+  update() {
+    this.successMessage="Address updated Successfully.."
+      this._snackBar.open(this.successMessage, "", {
+          duration: 2000,
+        });
+        this.router.navigate(['/home/addressbook'])
+    // this.updateser.update(this.updateForm.value,).subscribe()
+
+    // Your code goes here
+
+    this.userName = sessionStorage.getItem("userId")
+    this.updateser.update(this.updateForm.value, this.userName).subscribe(
+      a => {
+        this.successMsg = a
+          
+
+      }, b => this.errorMessage = b
+    )
+  }
+
+
+  close() {
+
+    // Your code goes here
+  }
+}
+==============================================================================
+add html
+---------
+<div class="container">
+  
+    <div class="row">
+        <div class="col-md-8 offset-3">
+            <h1 class="text-center fw-2 ">Add New Address</h1>
+            <form [formGroup]="addAddressForm" (ngSubmit)="add()">
+                <div class="form-group">
+                    <label for="userAddressName"><mat-icon class="material-icons">home_work</mat-icon> Address Type:</label>
+        
+                  <input type="text"  id="userAddressName2"  placeholder="Specify your Address Type:" class="form-control" formControlName="userAddressName">
+                  <span id="userAddressNameError" class="alert" *ngIf="addAddressForm.controls['userAddressName'].dirty && addAddressForm.controls['userAddressName'].invalid">
+                    Please enter the valid address type
+                </span>
+                </div>
+                <div class="form-group">
+                    <label for="addressLine1"><mat-icon class="material-icons">import_contacts</mat-icon> Address Line 1:</label>
+                    <input type="text" id="addressLine1" class="form-control" formControlName="addressLine1" placeholder=" enter plot no./street name/ building name">
+                    <span id="addressLine1Error" class="alert" *ngIf="addAddressForm.controls['addressLine1'].dirty && addAddressForm.controls['addressLine1'].invalid">
+                        Please enter the  plot no./street name/ building name
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label for="addressLine2"><mat-icon class="material-icons">import_contacts</mat-icon> Address Line 2:</label>
+                    <input type="text" id="addressLine2" class="form-control" formControlName="addressLine2" placeholder=" enter  location/landmark">
+                    <span id="addressLine2Error" class="alert" *ngIf="addAddressForm.controls['addressLine2'].dirty && addAddressForm.controls['addressLine2'].invalid">
+                        Please enter the  valid  location/landmark
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label for="area"><mat-icon class="material-icons">emoji_transportation</mat-icon> Area Name:</label>
+                    <input type="text" id="area" class="form-control" formControlName="area" placeholder=" enter your area name">
+                    <span id="areaError" class="alert" *ngIf="addAddressForm.controls['area'].dirty && addAddressForm.controls['area'].invalid">
+                        Please enter the area name of minimum of length 3 characters
+                    </span>
+                </div>
+                <div class="form-group">
+                    <label for="city"><mat-icon class="material-icons">location_city</mat-icon> City Name:</label>
+                    <input type="text" id="city" class="form-control" formControlName="city" placeholder=" enter your city name">
+                    <span id="cityError" class="alert" *ngIf="addAddressForm.controls['city'].dirty && addAddressForm.controls['city'].invalid">
+                        Please enter the city name of minimum of length 3 characters
+                    </span>
+                </div>
+                <div class="form-group">
+                <label for="userState"><mat-icon class="material-icons">domain</mat-icon> State:</label>
+                <select id="userState" class="form-control" formControlName="userState" >
+                    <option value="">--Choose the State--</option>
+                    <option *ngFor="let a of stateList" value="{{a}}">{{a}}</option>
+                </select>
+                <!-- <span id="userStateError" class="alert" *ngIf="addAddressForm.controls['userState'].dirty && addAddressForm.controls['userState].invalid">
+                    Please choose valid state
+                </span> -->
+            </div>
+                <div class="form-group" >
+                    <label for="pincode"><mat-icon class="material-icons">home_pin</mat-icon> PinCode:</label>
+                    <input type="number" id="pincode" class="form-control" formControlName="pincode" placeholder=" Enter your pincode">
+                   <!--  <span id="pincodeError" class="alert" *ngIf="addAddressForm.controls['pincode'].dirty && addAddressForm.controls['pincode'].invalid">
+                        Please enter the valid pincode number
+                    </span> -->
+                </div>
+               
+                   <button type="submit"  class="btn"  [disabled]="addAddressForm.invalid || addAddressForm.pristine" >Add Address</button>
+                   
+   
+              </form>
+                        
+        </div>
+    </div>
+</div>
+
+
+
+
+
+=====================================================================================
+add ts
+--------
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { AddAddressService } from './add-address.service';
+import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+@Component({
+  selector: 'app-add-address',
+  templateUrl: './add-address.component.html',
+  styleUrls: ['./add-address.component.css']
+})
+export class AddAddressComponent implements OnInit {
+
+  errorMessage: String;
+  successMsg: String;
+  addAddressForm: FormGroup;
+  userAddressId: number;
+  flag: boolean = false;
+
+  stateList: string[] = ["Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Delhi", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu Kashmir", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttarakhand", "Uttar Pradesh", "West Bengal"];
+  constructor(private fb: FormBuilder, private router: Router, private addSer: AddAddressService,private _snackBar: MatSnackBar) { }
+
+  ngOnInit(): void {
+    this.addAddressForm = this.fb.group({
+      userAddressName: ["", Validators.required],
+      addressLine1: ["", [Validators.required, Validators.pattern("[A-Za-z0-9-/., ]+")]],
+      addressLine2: ["", [Validators.required, Validators.pattern("[A-Za-z0-9-/., ]+")]],
+      area: ["", [Validators.required, Validators.minLength(3)]],
+      city: ["", [Validators.required, Validators.minLength(3)]],
+      userState: ["", Validators.required],
+      pincode: ["", [Validators.required, Validators.pattern("[1-9][0-9]{5}")]]
+    })
+
+    // Your code goes here
+  }
+  add() {
+
+    this.addSer.addAddress(this.addAddressForm.value).subscribe(a => {
+      this.successMsg = "Address added successfully"
+      this._snackBar.open(this.successMsg.toString(), "", {
+        duration: 2000,
+      });
+      this.router.navigate(['/home/addressbook'])
+    },
+      b => this.errorMessage = b);
+    // Your code goes here
+  }
+
+  cancel() {
+
+    // Your code goes here
+  }
+
+  close() {
+
+    // Your code goes here
+  }
+
+  reload() {
+
+    // Your code goes here
+  }
+
+}
+=========================================================================
+add servise
+-----------
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { UserAddress } from 'src/app/models/UserAddress';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
+//const url = "http://localhost:4000/cibo/UserAPI/addAddress/";
+@Injectable({
+  providedIn: 'root'
+})
+export class AddAddressService {
+  i: String;
+  constructor(private http:HttpClient) { }
+
+  addAddress(addressData: UserAddress): Observable<number> {
+    this.i=sessionStorage.getItem('userId')
+  
+  var user:UserAddress = new UserAddress();
+  user.addressLine1=addressData.addressLine1;
+  user.addressLine2=addressData.addressLine2;
+  user.userAddressName=addressData.userAddressName;
+  user.area=addressData.area;
+  user.city=addressData.city;
+  user.pincode=addressData.pincode;
+  user.userState=addressData.userState;
+  
+
+
+
+ 
+ 
+  
+  console.log(user);
+  
+    return this.http.post<number>(environment.addAddress+this.i,user);
+  }}
+
+===================================================================================
+update service
+---------------
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { UserAddress } from 'src/app/models/UserAddress';
+import { Users } from 'src/app/models/Users';
+import { environment } from 'src/environments/environment';
+
+
+const url= "http://localhost:4000/cibo/UserAPI/updateAddress/";
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UpdateAddressService {
+   addressId:String;
+  constructor(private http:HttpClient) { }
+
+  delete(addressId: String, userId: String): Observable<UserAddress> {
+    console.log(addressId);
+    console.log(userId)
+    console.log(environment.deleteAddress+addressId+'/'+userId)
+    return this.http.delete<UserAddress>(environment.deleteAddress+addressId+'/'+userId);
+  }
+
+  getUserList(userid: String): Observable<Users>{
+
+    return this.http.get<Users>(environment.getAddress+userid);
+  }
+  update(addressData:UserAddress,name:string) : Observable<String> {
+
+    var user:UserAddress = new UserAddress();
+  user.userAddressId=Number.parseInt(sessionStorage.getItem("address"))
+  console.log(user.userAddressId)
+  console.log(Number.parseInt(sessionStorage.getItem("address")))
+  user.addressLine1=addressData.addressLine1;
+  user.addressLine2=addressData.addressLine2;
+  user.userAddressName=addressData.userAddressName;
+  user.area=addressData.area;
+  user.city=addressData.city;
+  user.pincode=addressData.pincode;
+  user.userState=addressData.userState;
+    return this.http.put<String>(url+name,user);
+}
+}

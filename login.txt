@@ -1,0 +1,115 @@
+login html
+-------------
+<div class="container ">
+    <div class="row">
+    <div class="col-md-8 offset-2">
+    <h1 class="text-center">Sign In</h1>
+    <form [formGroup]="loginForm" (ngSubmit)="login()" >
+        <div class="form-group" mat-list-item>
+            <mat-icon class="material-icons">call</mat-icon><label for="contactNumber">Contact Number:</label>
+            <input type="number" id="contactNumber" class="form-control" formControlName="contactNumber">
+            <span id="contactNumberError" class="alert" *ngIf="loginForm.controls['contactNumber'].dirty && loginForm.controls['contactNumber'].invalid">
+                Please enter the number
+            </span>
+        </div>
+        <div class="form-group" mat-list-item>
+            <mat-icon class="material-icons">key</mat-icon><label for="password">Password:</label>
+            <input type="password" id="password" class="form-control" formControlName="password">
+            <span id="passwordError" class="alert" *ngIf="loginForm.controls['password'].dirty && loginForm.controls['password'].invalid">
+                Please enter the password
+            </span>
+        </div>
+        <button type="submit" class="btn " [disabled]="loginForm.invalid || loginForm.pristine">Login Here</button>
+         
+     
+    </form>
+   
+    <span class="text-success" *ngIf="successMessage!=null">{{successMessage}}</span>
+    <span class="text-danger text-center" *ngIf="errorMessage!=null || errorMessage!=undefined">{{errorMessage}}</span>
+    <br>
+    <p class="mt-3 mb-2 text-center">Not Registered with us? Sign Up to get connected with us! </p>
+        <button type="submit"  class="btn-primary btn2 " (click)="getRegisterPage()">Sign Up</button>
+
+</div>
+</div>
+</div>
+===================================================================
+login ts
+-----------
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import {Users} from '../models/Users';
+import { AuthService } from '../core/auth.service'
+import { LoginService } from '../login/login.service'
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+
+  loginForm:FormGroup;
+  errorMessage : string;
+  successMessage:string=null;
+  user:Users=new Users();
+  show:boolean;
+  
+  constructor(private fb:FormBuilder,private ser:LoginService,private router:Router,private core:AuthService) { }
+
+  ngOnInit(): void {
+    this.loginForm=this.fb.group({
+      contactNumber:["",[Validators.required,Validators.pattern("[0-9]{10}")]],
+      password:["",[Validators.required,Validators.minLength(7),Validators.maxLength(20)]]
+
+    })
+   //  You code goes here
+  
+
+  }
+  login() {
+    this.ser.login(this.loginForm.value).subscribe(
+  a=>{this.successMessage="successful login"
+  sessionStorage.setItem("userId",a.userId.toString());
+  this.core.nextUser(a)
+  this.router.navigate(['/home'])},        
+  b=>this.errorMessage="The entered contact number or password is wrong"
+)
+
+    //  You code goes here
+}
+
+getRegisterPage(){
+
+this.router.navigate(['/register'])
+
+  //  You code goes here
+}
+
+
+
+
+}
+===================================================================================
+login service
+---------------
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment'
+import { Users } from '../models/Users'
+import { AuthService } from '../core/auth.service'
+@Injectable({
+  providedIn: 'root'
+})
+export class LoginService {
+
+  constructor(private http:HttpClient) { }
+
+  login(data: any): Observable<Users> {
+    console.log(data)
+    return this.http.post<Users>(environment.loginUri,data);    
+  }
+
+}
